@@ -32,7 +32,7 @@ bool polyval(double x0, vec cfs, vec x, vec &y);
 void remove_spaces_front(string &str);
 void remove_spaces_back(string &str);
 void remove_spaces_ends(string &str);
-void pascal(int n, imat &P);
+void pascal(int n, mat &P);
 
 OmegaMaxEnt_data::OmegaMaxEnt_data(int arg_N, char *args[])
 {
@@ -77,6 +77,7 @@ OmegaMaxEnt_data::OmegaMaxEnt_data(int arg_N, char *args[])
 	preproc_complete=false;
 	initialize_maxent=true;
 	print_other_params=false;
+	dG_dtau_computed=false;
 	time_params_file=NULL;
 	time_other_params_file=NULL;
 	ind_alpha_vec=0;
@@ -4663,7 +4664,7 @@ bool OmegaMaxEnt_data::Kernel_chi()
 	Kd_c.rows(1,Nn-1)=real(-i*( -i*dWc -i*Wnc % atanc + Wnc % logc/2 ))/(2*PI);
 	
 	int Pmax=pnmax+4;
-	imat MP;
+	mat MP;
 	pascal(Pmax+1,MP);
 	int pnmax2=pnmax/2;
 	
@@ -7608,7 +7609,7 @@ bool OmegaMaxEnt_data::Kernel_G_bosons()
 
  
  	int Pmax=pnmax+4;
-	imat MP;
+	mat MP;
 	pascal(Pmax+1,MP);
  
 	double wtmp, wj, dw1;
@@ -12490,7 +12491,7 @@ void OmegaMaxEnt_data::minimize()
 				
 				if (alpha<alpha_min)
 				{
-					if (dlchi2_lalpha_min/dlchi2_lalpha_max>RMAX_dlchi2_lalpha || ind_alpha_vec<Nalpha_min)
+					if (dlchi2_lalpha_max>0 && dlchi2_lalpha_min/dlchi2_lalpha_max>RMAX_dlchi2_lalpha || ind_alpha_vec<Nalpha_min)
 					{
 						if (!alpha_min_in.size())
 						{
@@ -12504,7 +12505,7 @@ void OmegaMaxEnt_data::minimize()
 						}
 					}
 				}
-				else if (dlchi2_lalpha_min/dlchi2_lalpha_max<RMAX_dlchi2_lalpha/10 && ind_alpha_vec>Nalpha_min)
+				else if (dlchi2_lalpha_max>0 && dlchi2_lalpha_min/dlchi2_lalpha_max<RMAX_dlchi2_lalpha/10 && ind_alpha_vec>Nalpha_min)
 				{
 					if (!alpha_min_in.size() && !alpha_min_too_high)
 					{
@@ -12945,7 +12946,7 @@ void OmegaMaxEnt_data::minimize_increase_alpha()
 				
 				if (alpha<alpha_min)
 				{
-					if (dlchi2_lalpha_min/dlchi2_lalpha_max>RMAX_dlchi2_lalpha || ind_alpha_vec<Nalpha_min)
+					if (dlchi2_lalpha_max>0 && dlchi2_lalpha_min/dlchi2_lalpha_max>RMAX_dlchi2_lalpha || ind_alpha_vec<Nalpha_min)
 					{
 						if (!alpha_min_in.size())
 						{
@@ -12958,7 +12959,7 @@ void OmegaMaxEnt_data::minimize_increase_alpha()
 						}
 					}
 				}
-				else if (dlchi2_lalpha_min/dlchi2_lalpha_max<RMAX_dlchi2_lalpha/10 && ind_alpha_vec>Nalpha_min)
+				else if (dlchi2_lalpha_max>0 && dlchi2_lalpha_min/dlchi2_lalpha_max<RMAX_dlchi2_lalpha/10 && ind_alpha_vec>Nalpha_min)
 				{
 					if (!alpha_min_in.size())
 					{
@@ -13256,7 +13257,7 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf_omega()
 	Kd=-logc2;
 	
 	int Pmax=2*pnmax+4;
-	imat MP;
+	mat MP;
 	pascal(Pmax+1,MP);
 	
 	int j;
@@ -13756,7 +13757,7 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf_2()
 	Kd_c=-logc2;
 	
 	int Pmax=2*pnmax+4;
-	imat MP;
+	mat MP;
 	pascal(Pmax+1,MP);
 	
 	if (use_HF_exp)
@@ -14651,7 +14652,7 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf()
 	Kd_c=-logc2;
 	
 	int Pmax=2*pnmax+4;
-	imat MP;
+	mat MP;
 	pascal(Pmax+1,MP);
 	
 	if (use_HF_exp)
@@ -15351,7 +15352,7 @@ bool OmegaMaxEnt_data::Kernel_G_fermions()
 	Kd_c_r=-logc2;
 	
 	int Pmax=2*pnmax+4;
-	imat MP;
+	mat MP;
 	pascal(Pmax+1,MP);
 
 	if (use_HF_exp)
@@ -24611,11 +24612,11 @@ bool polyfit(vec &cfs, vec x, vec y, int D)
 }
 
 
-void pascal(int n, imat &P)
+void pascal(int n, mat &P)
 {
 	P.zeros(n,n);
-	P.col(0)=ones<ivec>(n);
-	P.row(0)=ones<irowvec>(n);
+	P.col(0)=ones<vec>(n);
+	P.row(0)=ones<rowvec>(n);
 	int j,l;
 	for (j=1; j<n; j++)
 		for (l=1; l<n; l++)
