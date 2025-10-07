@@ -21,22 +21,10 @@
 #include "includeDef.h"
 #include "generique.h"
 
-extern "C"
-{
-	// routines LAPACK  (descriptions sur http://www.netlib.org/lapack )
-	// resout le systeme d'equations AX=B ou A est tridiagonal, reels double precision 	
-	void dgtsv_(int *N, int *NRHS, double *DL, double *D, double *DU, double *B, int *LDB, int *INFO );
-	// resout le systeme d'equations AX=B ou A est tridiagonal, complex double precision 	
-	void zgtsv_(int *N, int *NRHS, dcomplex *DL, dcomplex *D, dcomplex *DU, dcomplex *B, int *LDB, int *INFO );
-	// resout le systeme d'equations AX=B ou A a plusieurs diagonales, reals double precision
-	void dgbsv_(int *N, int *KL, int *KU, int *NRHS, double *AB, int *LDAB, int *IPIV, double *B, int *LDB, int *INFO );
-	// routine avancee pour resoudre le systeme d'equations AX=B ou A a plusieurs diagonales, reals double precision
-	void dgbsvx_( char *FACT, char *TRANS, int *N, int *KL, int *KU, int *NRHS, double *AB, int *LDAB, double *AFB,
-				 int *LDAFB, int *IPIV, char *EQUED, double *R, double *C, double *B, int *LDB, double *X, int *LDX,
-				 double *RCOND, double *FERR, double *BERR, double *WORK, int *IWORK, int *INFO );
-	// resout le systeme d'equations AX=B ou A a plusieurs diagonales, complex double precision
-	void zgbsv_(int *N, int *KL, int *KU, int *NRHS, dcomplex *AB, int *LDAB, int *IPIV, dcomplex *B, int *LDB, int *INFO );
-}
+// LAPACK functions are now provided through Armadillo's headers.
+// Armadillo's def_lapack.hpp declares dgbsv_, dgtsv_, zgtsv_, zgbsv_, etc.
+// We use arma::blas_int for consistency with Armadillo's type definitions.
+using arma::blas_int;
 
 double generique::simpson_integ(vec f, double dx)
 {

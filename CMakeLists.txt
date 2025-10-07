@@ -9,7 +9,7 @@ project(
     DESCRIPTION "Analytic continuation of imaginary time/frequency Green or response functions"
 )
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
@@ -23,41 +23,24 @@ add_executable(OmegaMaxEnt
     cpp/OmegaMaxEnt_main.cpp
 )
 
-# Looking for deps (LAPACK, FFTW3)
+# Find/fetch dependencies (Armadillo, LAPACK, FFTW3)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external)
 find_package(LAPACK REQUIRED)
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/external")
 find_package(FFTW REQUIRED)
 
-# Check suitable Armadillo version or install 5.600.2
-if (DOWNLOAD_ARMADILLO)
-    include(ExternalProject)
-    ExternalProject_Add(Armadillo
-        PREFIX ${CMAKE_SOURCE_DIR}/external
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/Armadillo
-        URL "https://kojipkgs.fedoraproject.org//vol/fedora_koji_archive01/packages/armadillo/5.600.2/1.fc21/src/armadillo-5.600.2-1.fc21.src.rpm"
-        URL_HASH MD5=c05255a8970290c0b743b0e49898c29e
-        PATCH_COMMAND tar -xf armadillo-5.600.2.tar.gz --strip-components=1
-        BUILD_IN_SOURCE 1
-        INSTALL_COMMAND ""
-        STEP_TARGETS build
-        BUILD_BYPRODUCTS ${CMAKE_SOURCE_DIR}/external/Armadillo/libarmadillo.so
-    )
-    add_dependencies(OmegaMaxEnt Armadillo)
-    set(ARMADILLO_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/external/Armadillo/include)
-    set(ARMADILLO_LIBRARIES ${CMAKE_SOURCE_DIR}/external/Armadillo/libarmadillo.so)
-else()
-    find_package(Armadillo REQUIRED)
-    if (${ARMADILLO_VERSION_MAJOR} VERSION_GREATER_EQUAL "6")
-      message(FATAL_ERROR "OmegaMaxEnt requires Armadillo version less than 6.0.0. Please try configuring with option -DDOWNLOAD_ARMADILLO=1")
-    endif()
-endif()
-
-target_include_directories (
-    OmegaMaxEnt PRIVATE cpp ${ARMADILLO_INCLUDE_DIRS} ${LAPACK_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
+set(ARMA_DONT_USE_WRAPPER ON CACHE BOOL "Don't use wrapper library" FORCE)
+set(HEADER_ONLY ON CACHE BOOL "Use Armadillo header-only mode")
+include(external/CPM.cmake)
+CPMAddPackage(
+    NAME armadillo
+    GIT_REPOSITORY https://gitlab.com/conradsnicta/armadillo-code.git
+    GIT_TAG 15.0.1
+    GIT_SHALLOW TRUE
 )
 
-#target_compile_definitions(OmegaMaxEnt PRIVATE ARMA_DONT_USE_WRAPPER)
+# Link executable to dependencies
+target_include_directories(OmegaMaxEnt PRIVATE cpp ${LAPACK_INCLUDE_DIRS})
+target_link_libraries(OmegaMaxEnt PRIVATE ${LAPACK_LIBRARIES} FFTW::Double armadillo)
 
-target_link_libraries(OmegaMaxEnt ${LAPACK_LIBRARIES} ${ARMADILLO_LIBRARIES} ${FFTW_LIBRARIES})
-
+# Install executable
 install(TARGETS OmegaMaxEnt DESTINATION bin)

@@ -22,23 +22,10 @@
 #include <cstring>
 #include <cmath>
 
-extern "C"
-{
-	//computes the solution to system of linear equations A * X = B ( http://www.netlib.org/lapack/explore-html/d8/d72/dgesv_8f_source.html )
-    void dgesv_(int *N, int *NRHS, double *A, int *LDA, int *IPIV, double *B, int *LDB, int *INFO );
-	// computes the solution to a real system of linear equations A * X = B, where A is an N-by-N symmetric positive definite matrix and X and B are N-by-NRHS matrices. ( http://www.netlib.org/lapack/explore-html/d9/d6f/dposv_8f_source.html )
-	void dposv_(char *UPLO, int *N, int *NRHS, double *A, int *LDA, double *B, int *LDB, int *INFO );
-	//computes the singular value decomposition ( http://www.netlib.org/lapack/explore-html/d8/d2d/dgesvd_8f_source.html )
-    void dgesvd_(char *JOBU, char *JOBVT, int *M, int *N, double *A, int *LDA, double *S, double *U, int *LDU, double *VT, int *LDVT, double *WORK, int *LWORK, int *INFO );
-	//computes the singular value decomposition. If singular vectors are desired, uses a divide and conquer algorithm. ( http://www.netlib.org/lapack/explore-html/db/db4/dgesdd_8f_source.html )
-    void dgesdd_( char *JOBZ, int *M, int *N, double *A, int *LDA, double *S, double *U, int *LDU, double *VT, int *LDVT, double *WORK, int *LWORK, int *IWORK, int *INFO );
-	//computes the eigenvalues and, optionally, the left and/or right eigenvectors for SY matrices ( http://www.netlib.org/lapack/explore-html/dd/d4c/dsyev_8f_source.html )
-	void dsyev_( char *JOBZ, char *UPLO, int *N, double *A, int *LDA, double *W, double *WORK, int *LWORK, int *INFO );
-	//solves a general Gauss-Markov linear model (GLM) problem. ( http://www.netlib.org/lapack/explore-html/d3/df4/dggglm_8f_source.html )
-	void dggglm_(int *N, int *M, int *P, double *A, int *LDA, double *B, int *LDB, double *D, double *X, double *Y, double *WORK, int *LWORK, int *INFO );
-	//computes the solution to system of linear equations A * X = B, where A is a band matrix ( http://www.netlib.org/lapack/explore-html/dd/dc2/dgbsv_8f_source.html )
-	void dgbsv_(int *N, int *KL, int *KU, int *NRHS, double *AB, int *LDAB, int *IPIV, double *B, int *LDB, int *INFO );
-}
+// LAPACK functions are now provided through Armadillo's headers.
+// Armadillo's def_lapack.hpp declares dgbsv_, dgtsv_, zgtsv_, zgbsv_, etc.
+// We use arma::blas_int for consistency with Armadillo's type definitions.
+using arma::blas_int;
 
 bool polyfit(vec &cfs, vec x, vec y, int D);
 bool polyval(double x0, vec cfs, vec x, vec &y);
@@ -789,8 +776,9 @@ int OmegaMaxEnt_data::loop_run()
 						else
 						{
 							vec lalpha_tmp=fs*(lalpha.rows(jmin,jmax)-0.5*(lalpha(jmin)+lalpha(jmax)));
+							const vec lchi2_tmp=lchi2.rows(jmin,jmax);
 //							if (polyfit(fs*lalpha.rows(jmin,jmax), lchi2.rows(jmin,jmax), 1, 0.5*fs*(lalpha(jmin)+lalpha(jmax)), cfs_poly))
-							if (polyfit(cfs_poly, lalpha_tmp, lchi2.rows(jmin,jmax), 1))
+							if (polyfit(cfs_poly, lalpha_tmp, lchi2_tmp, 1))
 								dlchi2_lalpha(j-ind_curv_start)=cfs_poly(0);
 							else
 								dlchi2_lalpha(j-ind_curv_start)=0;
@@ -9816,8 +9804,9 @@ bool OmegaMaxEnt_data::compute_moments_tau()
 		for (np=npmin; np<=npmax; np++)
 		{
 			Nfit=np+1+DNfit;
+			const vec tau_tmp=tau.rows(0,Nfit-1);
 			Gtmp=Gtau.rows(0,Nfit-1)+sgn*flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
-			if (!polyfit(pp,tau.rows(0,Nfit-1),Gtmp,np))
+			if (!polyfit(pp,tau_tmp,Gtmp,np))
 			{
 				npmax=np-1;
 				continue;
@@ -9826,7 +9815,7 @@ bool OmegaMaxEnt_data::compute_moments_tau()
 			M2tmp(DNfit-DNfitmin,np-npmin)=-2*pp(np-2);
 			
 			Gtmp=Gtau.rows(0,Nfit-1)-sgn*flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
-			if (!polyfit(pp,tau.rows(0,Nfit-1),Gtmp,np))
+			if (!polyfit(pp,tau_tmp,Gtmp,np))
 			{
 				npmax=np-1;
 				continue;
