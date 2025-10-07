@@ -12,9 +12,6 @@ project(
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -fopenmp -ffast-math -funroll-loops -march=native -ftree-vectorize")
-
 add_executable(OmegaMaxEnt 
     cpp/graph_2D.cpp
     cpp/graph_3D.cpp
