@@ -83,6 +83,7 @@ OmegaMaxEnt_data::OmegaMaxEnt_data(int arg_N, char *args[])
 	ind_alpha_vec=0;
 	rnd_gen.seed(time(NULL));
 	NAprec=5;
+	Nalpha_max=0;
 }
 
 OmegaMaxEnt_data::~OmegaMaxEnt_data()
